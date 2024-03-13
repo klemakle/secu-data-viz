@@ -18,13 +18,13 @@ Année :  2024
 
 ## Présentation
 **Machine locale** : 
--   ip : 192.168.137.95
+-   @ip : 192.168.137.95
 -   system : MacOS
 
 **Machine linux hebergeant iptables** : 
 -   @ip : 192.168.137.101
 -   user : aethelwulf
--   distribution : kali linux
+-   distro : kali linux
   
 Ce challenge a pour but de relier des notions de sécurité et d'analyse de données. Le but est de capturer des connexions ou des tentatives de connexions dans notre système d'information. Ces connexions seront journalisées (logs) et enregistrées pour ensuite faire une analyse sur des eventuelles attaques.<br> 
 Pour ce faire, 2 solutions s'offrent à nous : 
