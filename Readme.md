@@ -1,7 +1,7 @@
 ---
 Titre : Challenge OPSIE SISE 2024
-auteurs : Kalidou DIA, Nadine Hadj SAID, Dylan UPRAJAY
-Formation : Master 2 - organisation et protection des systèmes d'information en entreprise - Université Lyon 2
+auteur : Kalidou DIA @aethelwulf (https://kalidou.me)
+Formation : M2 - organisation et protection des systèmes d'information en entreprise - Université Lumière Lyon 2
 Année :  2024
 ---
 
