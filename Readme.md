@@ -467,7 +467,7 @@ bin/logstash -f myconf.conf --config.reload.automatic
 Si nous allons ensuite sur ELK, nous verrons l'index **sise** au niveau du "stack management", une fois l'avoir ajouté, nous verrons les logs du patten **sise** au niveau de "discover"
 
 Ci dessous quelques données que nous avons choisi d'afficher.
-![alt text](<capture ELK filebeat.png>)
+![alt text](<captures/capture ELK filebeat.png>)
 
 Nous pouvons ensuite créer un Dashboard qui ressemble à ça.
 ![alt text](<captures/elk viz.png>)
