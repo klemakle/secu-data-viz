@@ -1,0 +1,4 @@
+chown root.elasticsearch /etc/elasticsearch/elasticsearch.yml
+chown root.kibana /etc/kibana/kibana.yml
+ln -s /usr/share/logstash/bin/logstash /root/logstash
+logstash -> /usr/share/logstash/bin/logstash

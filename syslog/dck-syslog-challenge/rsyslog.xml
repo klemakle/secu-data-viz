@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<patterndb version='4' pub_date='2019-07-22'>
+  <ruleset name='patternize' id='78d89a74-9ccd-0043-badd-667bf2752663'>
+   <patterns>
+   </patterns>
+    <rules>
+      <rule id='2222' class='ssh1' provider='patternize'>
+        <patterns>
+          <pattern>@PCRE::\[\s*\d+\.\d+\] @@ESTRING:action: @RULE=@ESTRING:policyid: @IN=@ESTRING:interface: @OUT=@ESTRING:interface-out: @MAC=@ESTRING:mac: @SRC=@ESTRING:ip-src: @DST=@ESTRING:ip-dst: @LEN=@ESTRING:: @TOS=@ESTRING:: @PREC=@ESTRING:: @TTL=@ESTRING:: @ID=@ESTRING:: @PROTO=@ESTRING:proto: @SPT=@ESTRING:port-src: @DPT=@ESTRING:dport: @WINDOW=@PCRE::.+$@</pattern>
+        </patterns>
+      </rule>
+      <rule id='2223' class='deny' provider='patternize'>
+        <patterns>
+          <pattern>@PCRE::\[\s*\d+\.\d+\] @@ESTRING:action: @RULE=@ESTRING:policyid: @IN=@ESTRING:interface: @OUT=@ESTRING:interface-out: @MAC=@ESTRING:mac: @SRC=@ESTRING:ip-src: @DST=@ESTRING:ip-dst: @LEN=@ESTRING:: @TOS=@ESTRING:: @PREC=@ESTRING:: @TTL=@ESTRING:: @ID=@ESTRING:: @DF@ESTRING:: @PROTO=@ESTRING:proto: @SPT=@ESTRING:port-src: @DPT=@ESTRING:dport: @WINDOW=@PCRE::.+$@</pattern>
+        </patterns>
+      </rule>
+      <rule id='2224' class='udp' provider='patternize'>
+        <patterns>
+          <pattern>@PCRE::\[\s*\d+\.\d+\] @@ESTRING:action: @RULE=@ESTRING:policyid: @IN=@ESTRING:interface: @OUT=@ESTRING:interface-out: @MAC=@ESTRING:mac: @SRC=@ESTRING:ip-src: @DST=@ESTRING:ip-dst: @LEN=@ESTRING:: @TOS=@ESTRING:: @PREC=@ESTRING:: @TTL=@ESTRING:: @ID=@ESTRING:: @PROTO=@ESTRING:proto: @SPT=@ESTRING:port-src: @DPT=@ESTRING:dport: @LEN=@PCRE::.+$@</pattern>
+        </patterns>
+      </rule>
+      <rule id='2225' class='udp2' provider='patternize'>
+        <patterns>
+          <pattern>@PCRE::\[\s*\d+\.\d+\] @@ESTRING:action: @RULE=@ESTRING:policyid: @IN=@ESTRING:interface: @OUT=@ESTRING:interface-out: @MAC=@ESTRING:mac: @SRC=@ESTRING:ip-src: @DST=@ESTRING:ip-dst: @LEN=@ESTRING:: @TOS=@ESTRING:: @PREC=@ESTRING:: @TTL=@ESTRING:: @ID=@ESTRING:: @DF@ESTRING:: @PROTO=@ESTRING:proto: @SPT=@ESTRING:port-src: @DPT=@ESTRING:dport: @LEN=@PCRE::.+$@</pattern>
+        </patterns>
+      </rule>
+
+    </rules>
+  </ruleset>
+</patterndb>
+
