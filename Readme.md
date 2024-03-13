@@ -51,14 +51,14 @@ Préseentation de nos 3 conteneurs
 
   ***Conteneur 2*** : <a name="mariadb"></a>MariaDB / ip = 172.17.0.3 <br>
   Il nous sert de base de données pour stocker nos données filtrées grâce à syslog-ng.
-  ```docker
+  ```bash
   docker run --name ma-mariadb -e  MARIADB_ROOT_PASSWORD=mypass123 -d -p 3306:3306 mariadb:10.6.4
   ```
 
 
   ***Conteneur 3*** : PhpMyAdmin / ip = 172.17.0.4<br>
   Il nous permet de visualiser nos données sur un navigateur web.
-  ```docker
+  ```bash
   docker run --name mon-phpmyadmin  -d --link ma-mariadb:db -p 8081:80 phpmyadmin
   ```
 
@@ -290,8 +290,9 @@ nmap --script=ssh-brute 192.168.137.101
 ![alt text](<captures/brute force.png>)
 
 ## <a name="rsyslog"></a>2. Partie : Filebeat + ELK
-Architecture :
+***Architecture***
 ![alt text](<captures/archi elk filebeat.drawio.png>)
+
 La journalisation avec ELK et filebeat est plus légère que celle avec rsyslog/syslog-ng. Les règles iptables étant ajoutées, nous avons besoin d'installer filebeat et logstash dans notre VM kali linux. <a href="https://www.elastic.co/guide/en/beats/filebeat/current/configuring-howto-filebeat.html" target="_blank">Documentation ELK filebeat</a>.<br>
 Notre environnement est constitué de filebeat et logstash qui sont installés dans notre VM kali et de deux conteneurs elasticsearch et kibana qui tournent dans notre machine locale.
 
@@ -303,7 +304,7 @@ Notre environnement est constitué de filebeat et logstash qui sont installés d
 
 ### 2.1 Installations de filebeat et de logstash
 Nous allons devoir exécuter les commandes ci-dessous pour bien faire tourner filebeat.
-```bat
+```bash
 # pre-config
 
 sudo apt-get install apt-transport-https gpg
@@ -365,19 +366,19 @@ Le fichier envoie la sortie (les logs filtrés et structurés) vers un service e
 ![alt text](<captures/filter logstash.png>)
 
 ### 2.4 Démarrage des services elasticsearch et kibana
-Elasticsearch :
+Run Elasticsearch
 ```docker
 docker run -itd -p 9200:9200 -p 9300:9300 dck_elastic:latest
 ```
 
-kibana :
+Run kibana
 ```docker
 docker run -itd -p 5601:5601 dck_kibana:latest 
 ```
 dck_elastic et dck_kibana sont des images dockers que nous installés grâce à un fichier DockerFile.
 
 **DockerFile de elasticsearch**
-```docker
+```Dockerfile
 FROM ubuntu
 
 RUN apt update
@@ -409,7 +410,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 ```
 
 **DockerFile de kibana**
-```docker
+```Dockerfile
 FROM ubuntu
 
 RUN apt update
