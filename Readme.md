@@ -5,7 +5,9 @@ Formation : M2 - organisation et protection des systèmes d'information en entre
 Année :  2024
 --- -->
 
-# Securité et visualition des données - Challenge 2024
+# Sécurité et visualisation des données 
+
+**ELK - Rsyslog - Syslog-ng - Filebeat**
 
 ![Kali](https://img.shields.io/badge/Kali-268BEE?style=for-the-badge&logo=kalilinux&logoColor=white)
 ![Shell Script](https://img.shields.io/badge/shell_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)
@@ -21,15 +23,16 @@ Année :  2024
 -   @ip : 192.168.137.95
 -   system : MacOS
 
-**Machine linux hebergeant iptables** : 
+**VM linux hébergeant iptables** : 
 -   @ip : 192.168.137.101
 -   user : aethelwulf
 -   distro : kali linux
-  
-Ce challenge a pour but de relier des notions de sécurité et d'analyse de données. Le but est de capturer des connexions ou des tentatives de connexions dans notre système d'information. Ces connexions seront journalisées (logs) et enregistrées pour ensuite faire une analyse sur des eventuelles attaques.<br> 
+___
+
+Ce challenge a pour but de relier des notions de sécurité et d'analyse de données. L'objectif est de capturer des connexions ou des tentatives de connexions dans notre système d'information. Ces connexions seront journalisées (logs) et enregistrées pour ensuite faire une analyse sur des éventuelles attaques.<br> 
 Pour ce faire, 2 solutions s'offrent à nous : 
 - [Solution 1 ](#rsyslog) ==>  <a href="https://www.rsyslog.com/doc/index.html" target=_blank> Rsyslog</a> + <a href="https://www.syslog-ng.com/technical-documents/list/syslog-ng-open-source-edition/3.38">Syslog-ng</a>
-- [Solution 2 ](#filebeat)==> ELK + Filebeat.  (<a href="https://www.elastic.co/fr/beats/filebeat" target=_blank>Documentation ELK</a>) 
+- [Solution 2 ](#filebeat)==> ELK + Filebeat  (<a href="https://www.elastic.co/fr/beats/filebeat" target=_blank>Documentation</a>) 
   
 
 
@@ -39,26 +42,26 @@ Pour ce faire, 2 solutions s'offrent à nous :
 La journalisation se fait grâce à des règles [iptables](#iptables) déjà fournies. Les logs sont enregistrés dans un fichier */var/log/sise.log*. Puis ils sont envoyés vers un service docker grâce à rsyslog. Ces configurations sont faites au niveau d'une machine Kali linux.<br>
 Trois conteneurs docker sont mis en place pour réceptionner, stocker et visualiser les logs. 
 
-### 1.1 On monte nos conteneurs docker
+### 1.1. On monte nos conteneurs docker
 Préseentation de nos 3 conteneurs 
 
-  ***Conteneur 1*** : Syslog-ng / ip = 172.17.0.2 <br>
+  **Conteneur 1** : Syslog-ng | @ip = 172.17.0.2
   Il nous permet de réceptionner et de filtrer les logs. L'image *syslog-challenge* est construite à l'aide d'un fichier DockerFile en local.
 
-  ```docker
+  ```shell
   docker run --name syslog-d-2024  -itd -p 22:22 -p 514:514  syslog-challenge
   ```
 
-  ***Conteneur 2*** : <a name="mariadb"></a>MariaDB / ip = 172.17.0.3 <br>
+  **Conteneur 2** : <a name="mariadb"></a>MariaDB | @ip = 172.17.0.3 <br>
   Il nous sert de base de données pour stocker nos données filtrées grâce à syslog-ng.
-  ```bash
+  ```shell
   docker run --name ma-mariadb -e  MARIADB_ROOT_PASSWORD=mypass123 -d -p 3306:3306 mariadb:10.6.4
   ```
 
 
-  ***Conteneur 3*** : PhpMyAdmin / ip = 172.17.0.4<br>
+  **Conteneur 3** : PhpMyAdmin | @ip = 172.17.0.4<br>
   Il nous permet de visualiser nos données sur un navigateur web.
-  ```bash
+  ```shell
   docker run --name mon-phpmyadmin  -d --link ma-mariadb:db -p 8081:80 phpmyadmin
   ```
 
@@ -72,10 +75,10 @@ ________________________________________________________________
 ![alt text](<captures/regles iptables kali.png>)
 
 2. Les cinq ports de destination Tcp les plus utilisés sur les log Iptables Cloud et non présents dans le configuration Iptables sont :  443,22,80,23,445  
-![alt text](<captures/port utilisés.png>)
+<!-- ![alt text](<captures/port utilisés.png>) -->
 
 3. Ouverture des ces 5 ports avec netcat : 
-  ```bat
+  ```bash
   sudo nc -l -p 443 &
   sudo nc -l -p 445 &
   sudo nc -l -p 80 &
@@ -84,16 +87,20 @@ ________________________________________________________________
   ```
 ![alt text](<captures/nc captures.png>)
 
-4. Configuration Syslog-ng à l’aide des fichiers syslog-ng.conf et rsyslog.xml :
-fichier 'syslog-ng.conf'
-![alt text](<captures/syslog-ng conf.png>)
+4. Configuration de Syslog-ng à l’aide des fichiers 
+[syslog-ng.conf](syslog/dck-syslog-challenge/syslog-ng.conf) et [rsyslog.xml](syslog/dck-syslog-challenge/rsyslog.xml)
+<!-- fichier 'syslog-ng.conf' -->
+<!-- ![alt text](<captures/syslog-ng conf.png>) -->
 
-fichier rsyslog.xml
-![alt text](<captures/rsyslog xml.png>)
+<!-- fichier rsyslog.xml -->
+<!-- ![alt text](<captures/rsyslog xml.png>) -->
 
-5. Autorisation des connexions SSH venant de l'administrateur et limitation des autres
-   SSH admin ``iptables -A INPUT -p tcp -s 192.168.137.95 --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT ``
-   limiter les autres connexions SSH 
+5. Autorisation des connexions SSH venant de l'administrateur et limitation des autres SSH admin 
+```bat
+iptables -A INPUT -p tcp -s 192.168.137.95 --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT 
+```
+
+6. Limiter les autres connexions SSH 
 ```bat
 iptables -A INPUT -p tcp --syn --dport 22 -m connlimit --connlimit-above 100 -m limit --limit 30/hour --limit-burst 1 -j ACCEPT
 ```
@@ -105,19 +112,19 @@ Après avoir ajouté les règles demandées, on obtient ce fichier avec toutes l
 ![alt text](<captures/regles iptables finales.png>)
 
 #### 1.2.2 Configuration Rsyslog
-on ajoute la configuration de rsyslog en spécifiant l'adresse de notre machine locale : 192.168.137.95. <br>
+On ajoute la configuration de rsyslog en spécifiant l'adresse de notre machine locale : 192.168.137.95. <br>
 La capture ci dessous montre que les logs contenant la chaine de caractères **"RULE="** sont enregistrés dans le fichier *'/var/log/sise.log'* et sont aussi envoyés via le port 514 vers la machine locale (192.168.137.95) où nos 3 conteneurs tournent.
 
-Fichier */etc/rsyslog.d/challenge.conf*
+Fichier ***'/etc/rsyslog.d/challenge.conf'***
 ![alt text](<captures/conf rsyslog.png>)
 
 - On démarre le service rsyslog  : 
-  ```bat
+  ```shell
   systemctl start rsyslog
   ```
 
 - On fait ensuite une capture réseau des trames 
-  ```bat
+  ```shell
   tcpdump -vvttttnn -XX dst port 514
   ```
 
@@ -125,16 +132,16 @@ Fichier */etc/rsyslog.d/challenge.conf*
 ________________________________________________________________
 
 Après avoir lancé le conteneur syslog avec la commande
-```bat 
+```bash
 docker exec -it syslog-d-2024 bash
 ```
 on modifie le fichier de conf *'/etc/syslog-ng/syslog-ng.conf'* en ajoutant l'adresse ip du conteneur MariaDB en tant que host. Logs_fw est le nom de notre base de données.
 ```SQL
 mysql -h 172.17.0.3 -u root -pmypass123 Logs_fw > /dev/null 
 ```
-L'adresse ip *'172.17.0.3`* fait référence à notre conteneur [mariaDB](#mariadb).<br>
-L'image ci-dessous montre la config syslog-ng. Les logs réceptionnés sont parsés et certaines informations **(date,ip-src, ip-dst, protocole, port de destination, policyId,action, interface)** sont enregistrés dans la base de donnés.<br>
-Les logs bruts sont sauvegardés dans le fichier *'brut.log'* et dans le fichier *'firewall.csv'* de manière semi-structuré. 
+L'adresse ip ***'172.17.0.3'*** fait référence à notre conteneur [mariaDB](#mariadb).<br>
+L'image ci-dessous montre la config syslog-ng. Les logs réceptionnés sont parsés et certaines informations **(date,ip-src, ip-dst, protocole, port de destination, policyId, action, interface)** sont enregistrés dans la base de donnés.<br>
+Les logs bruts sont sauvegardés dans le fichier *'brut.log'* et dans le fichier ***'firewall.csv'*** de manière semi-structuré. 
 ![alt text](<captures/syslog-ng conf.png>)
 
 On demarre ensuite le service syslog avec la commande 
@@ -142,16 +149,16 @@ On demarre ensuite le service syslog avec la commande
 /etc/init.d/syslog-ng start
 ```
 Et enfin on fait une capture réseau pour voir les paquets envoyés par la machine kali.
-```bat
+```bash
 tcpdump -vvttttnn -XX dst port 514
 ```
 
 ![alt text](<captures/tcp dump paquets.png>)
 
-- Contenu du fichier brut.log :
+- Contenu du fichier ***'brut.log'*** :
 ![alt text](<captures/brut log.png>)
 
-- Contenu du fichier firewall.csv : Les logs sont bien parsés et enregistrer dans le fichier 'firewall.csv'
+- Contenu du fichier ***'firewall.csv'*** : les logs sont bien parsés et enregistrés dans le fichier.
 ![alt text](<captures/firewall log.png>)
 
 - Contenu de notre base de données mariaDB : 
@@ -162,7 +169,7 @@ tcpdump -vvttttnn -XX dst port 514
 ### 1.4 Alimentation des données
 ________________________________________________________________
 **Consignes**
-1. Connexions licites  : Pour faire des connexions licites on exécute le script ci-dessous pendant quelques minutes depuis la machine de l'administrateur (machine local) qui est autorisé à se connecter par ssh.
+1. Connexions licites  : pour faire des connexions licites on exécute le script ci-dessous pendant quelques minutes depuis la machine de l'administrateur (machine local) qui est autorisé à se connecter par ssh.
 ```bash
 #!/bin/bash
 
@@ -195,7 +202,7 @@ nmap 192.168.137.101 -D  10.0.0.1, 192.168.4.1 , 172.156.2.26 , 192.168.1.0 , 10
 ![alt text](<captures/nmap furtif.png>)
 
 - 2. Balayage furtif avec 10 adresses aléatoires :
-```bat
+```bash
 nmap 192.168.137.101 -D RND:10
 ```
 ![alt text](<captures/nmap -D RND.png>)
@@ -213,13 +220,13 @@ nmap -f --scanflags ACK 192.168.137.101
 nmap --script=ipidseq -p 80 -T5 -v reseau_cible/24
 ```
 
-**Etape 2 : Choisir un zombi** <br>
-  Un zombi est distingué par le champ *'ipidseq : Incremental!'*
+**Etape 2 : choisir un zombi** 
+  Un zombi est identifié par le champ **' ipidseq : Incremental ! '**
   <!-- ![alt text](<captures/zombi trouvé.png>) -->
 
 **Etape 3 : lancer le scan**
 ```bat
-nmap -sI 159.84.146.187 192.168.137.101
+nmap -sI <ip_zombi> 192.168.137.101
 ```
 
 
@@ -239,49 +246,49 @@ arp -a
 
 **Etape 2 : lancer le spoof-mac**
 ```bat
-nmap -T4 --spoof-mac adresse_mac 192.168.137.101
+nmap -T4 --spoof-mac <adresse_mac> 192.168.137.101
 ```
 
 <!-- SELECT * FROM `FW` WHERE ipsrc="192.168.137.12" AND dstport="21" OR dstport="20";" -->
 
 - 7. Attaque par brute force sur le service Ftp.
 
-  Script python pour générer la wordlist import itertools
-  ```python
-  characters = 'abcdefghijklmnopqrstuvwxyz'
-  words = [''.join(i) for i in itertools.product(characters, repeat=4)]
+Script python pour générer la wordlist import itertools
+```python
+characters = 'abcdefghijklmnopqrstuvwxyz'
+words = [''.join(i) for i in itertools.product(characters, repeat=4)]
 
-  with open('four_character_dictionary.txt', 'w') as f:
-      for word in words:
-          f.write(word + '\n')
-  ```
-  Commande pour brute force avec hydra: 
-  ```bat
-  hydra -l aethelwulf -P /usr/share/wordlists/four_character_dictionary.txt ftp://192.168.137.101
-  ```
-  Les logs brute force dans la BD
-    ![alt text](<captures/hydra ftp.png>)
+with open('four_character_dictionary.txt', 'w') as f:
+    for word in words:
+        f.write(word + '\n')
+```
+Commande pour brute force avec hydra: 
+```bat
+hydra -l aethelwulf -P /usr/share/wordlists/four_character_dictionary.txt ftp://192.168.137.101
+```
+Les logs brute force dans la BD
+  ![alt text](<captures/hydra ftp.png>)
 
 - 8. Enumération dirbuster
-```bat 
+```bash
 gobuster dir -u http://192.168.137.101/ -w /usr/share/wordlists/small.txt 
 ```
 
 - 9. Attaque web via Nikto ou ZAP 
-```bat
+```bash
 nikto -h 192.168.137.101:80
 ```
 ![alt text](captures/nikto.png)
 
 
 - 10. Balayage des 100 ports les plus utilisés avec un délai d’une seconde par ports interrogés.
-```bat
+```bash
 nmap -p $(seq -s , 1 100) --max-rate=1 192.168.137.167
 ```
 ![alt text](<captures/100 port.png>)
 
 - 11. Test de scripts de type nmap orientés « http » ,« ftp » et « ssh »
-```bat
+```bash
 nmap --script=http-enum 192.168.137.101
 nmap --script=ftp-anon 192.168.137.101
 nmap --script=ssh-brute 192.168.137.101
@@ -289,14 +296,14 @@ nmap --script=ssh-brute 192.168.137.101
 ![alt text](<captures/script ftp ssh.png>)
 ![alt text](<captures/brute force.png>)
 
-## <a name="filebeat"></a>2. Partie : Filebeat + ELK
+## <a name="filebeat"></a>2. Partie Filebeat + ELK
 ***Architecture***
 ![alt text](<captures/archi elk filebeat.drawio.png>)
 
-La journalisation avec ELK et filebeat est plus légère que celle avec rsyslog/syslog-ng. Les règles iptables étant ajoutées, nous avons besoin d'installer filebeat et logstash dans notre VM kali linux. <a href="https://www.elastic.co/guide/en/beats/filebeat/current/configuring-howto-filebeat.html" target="_blank">Documentation ELK filebeat</a>.<br>
+La journalisation avec ELK + filebeat est plus légère que celle avec rsyslog + syslog-ng. Les règles iptables étant ajoutées, nous avons besoin d'installer filebeat et logstash dans notre VM kali linux. <a href="https://www.elastic.co/guide/en/beats/filebeat/current/configuring-howto-filebeat.html" target="_blank">Documentation ELK filebeat</a>.<br>
 Notre environnement est constitué de filebeat et logstash qui sont installés dans notre VM kali et de deux conteneurs elasticsearch et kibana qui tournent dans notre machine locale.
 
-- Filebeat permet de capturer les logs qui se trouvent dans le fichier *'/var/log/sise.log'* et les transmet à logstash qui écoute sur le port 5044.
+- Filebeat permet de capturer les logs qui se trouvent dans le fichier **'/var/log/sise.log'** et les transmet à logstash qui écoute sur le port 5044.
 
 - Logstash est chargé de parser les logs de manière structurée et de les transmettre à nos services elasticsearch + kibana (ELK) qui tournent sur des conteneurs docker. 
 
@@ -313,12 +320,11 @@ wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearm
 
 echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
 
---------------------------------------------------
-
+#--------------------------------------------------
 # install filebeat
 sudo apt-get update && sudo apt-get install filebeat
 
---------------------------------------------------
+#-------------------------------------------------
 #install logstash
 sudo apt-get install logstath
 
@@ -358,21 +364,21 @@ output {
     stdout {}
 }
 ```
-Ce fichier prend en entrée les logs que le logstash reçoit sur le port 5044. Il les filtre ensuite à l'aide de <a href="http://" target="_blank">grok</a>. 
+Ce fichier prend en entrée les logs que le logstash reçoit sur le port 5044. Il les filtre ensuite à l'aide de <a href="http://" target="_blank">grok</a> qui récupère les infos dont on a besoin et les met dans des variables. 
 
-Le contenu du filtre grok dépend des logs. Nous vous recommendons d'utiliser des outils de filtre grok en ligne pour obtenir un bon filtre des données.
+Le contenu du filtre grok dépend des logs. Nous vous recommendons d'utiliser des outils de filtre grok en ligne pour obtenir un bon matching des données.
 
 Le fichier envoie la sortie (les logs filtrés et structurés) vers un service elasticsearch qui tourne dans un conterneur au niveau de la machine locale (192.168.137.95). 
 ![alt text](<captures/filter logstash.png>)
 
 ### 2.4 Démarrage des services elasticsearch et kibana
 Run Elasticsearch
-```docker
+```bash
 docker run -itd -p 9200:9200 -p 9300:9300 dck_elastic:latest
 ```
 
 Run kibana
-```docker
+```bash
 docker run -itd -p 5601:5601 dck_kibana:latest 
 ```
 dck_elastic et dck_kibana sont des images dockers que nous installés grâce à un fichier DockerFile.
@@ -440,7 +446,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 #history > histo-ok.txt
 ```
 Une fois ces deux conteneurs *Up*, nous démarrons le kibana en "interactive terminal" et nous modifions le fichier */etc/kibana/kibana.yml* pour ajouter l'ip d'elasticsearch pour que kibana et élasticsearch puisse bien communiquer.
-l'ip d'lastic est le 172.17.0.3
+L'adresse ip d'elastic = 172.17.0.3
 ![alt text](<captures/link kibana elastic.png>).
 
 ✅ elasticsearch ==> localhost:9200 👍
