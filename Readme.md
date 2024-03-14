@@ -445,7 +445,7 @@ RUN echo "root:toto" | chpasswd
 ENTRYPOINT ["/entrypoint.sh"]
 #history > histo-ok.txt
 ```
-Une fois ces deux conteneurs *Up*, nous démarrons le kibana en "interactive terminal" et nous modifions le fichier */etc/kibana/kibana.yml* pour ajouter l'ip d'elasticsearch pour que kibana et élasticsearch puisse bien communiquer.
+Une fois ces deux conteneurs *Up*, nous démarrons le kibana en "interactive terminal" et nous modifions le fichier */etc/kibana/kibana.yml* pour ajouter l'ip d'elasticsearch afin que kibana et élasticsearch puissent communiquer.
 L'adresse ip d'elastic = 172.17.0.3
 ![alt text](<captures/link kibana elastic.png>).
 
