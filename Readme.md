@@ -43,41 +43,41 @@ La journalisation se fait grâce à des règles [iptables](#iptables) déjà fou
 Trois conteneurs docker sont mis en place pour réceptionner, stocker et visualiser les logs. 
 
 ### 1.1. On monte nos conteneurs docker
-Préseentation de nos 3 conteneurs 
+Présentation de nos 3 conteneurs :
 
-  **Conteneur 1** : Syslog-ng | @ip = 172.17.0.2
-  Il nous permet de réceptionner et de filtrer les logs. L'image *syslog-challenge* est construite à l'aide d'un fichier DockerFile en local.
+  - a) **Conteneur 1** : *Syslog-ng | @ip = 172.17.0.2 *<br>
+    Il nous permet de réceptionner et de filtrer les logs. L'image *syslog-challenge* est construite à l'aide d'un fichier DockerFile en local.
 
-  ```shell
-  docker run --name syslog-d-2024  -itd -p 22:22 -p 514:514  syslog-challenge
-  ```
+    ```shell
+    docker run --name syslog-d-2024  -itd -p 22:22 -p 514:514  syslog-challenge
+    ```
 
-  **Conteneur 2** : <a name="mariadb"></a>MariaDB | @ip = 172.17.0.3 <br>
-  Il nous sert de base de données pour stocker nos données filtrées grâce à syslog-ng.
-  ```shell
-  docker run --name ma-mariadb -e  MARIADB_ROOT_PASSWORD=mypass123 -d -p 3306:3306 mariadb:10.6.4
-  ```
-
-
-  **Conteneur 3** : PhpMyAdmin | @ip = 172.17.0.4<br>
-  Il nous permet de visualiser nos données sur un navigateur web.
-  ```shell
-  docker run --name mon-phpmyadmin  -d --link ma-mariadb:db -p 8081:80 phpmyadmin
-  ```
+  - b) **Conteneur 2** : <a name="mariadb"></a>*MariaDB | @ip = 172.17.0.3* <br>
+    Il nous sert de base de données pour stocker nos données filtrées grâce à syslog-ng.
+    ```shell
+    docker run --name ma-mariadb -e  MARIADB_ROOT_PASSWORD=mypass123 -d -p 3306:3306 mariadb:10.6.4
+    ```
 
 
-### 1.2 Condfiguration dans la machine kali linux
+  - c) **Conteneur 3** : *PhpMyAdmin | @ip = 172.17.0.4* <br>
+    Il nous permet de visualiser nos données sur un navigateur web.
+    ```shell
+    docker run --name mon-phpmyadmin  -d --link ma-mariadb:db -p 8081:80 phpmyadmin
+    ```
+
+
+### 1.2 Configuration au niveau de la machine kali linux
 ________________________________________________________________
 #### <a name="iptables"></a> 1.2.1 Configuration iptables :
 **Consignes**
 
-1. Règles iptables : On met bien les règles iptables fournies dans le dossier du projet.
+1. Règles iptables :Mise en place des règles iptables fournies. (voir image ci dessous)s
 ![alt text](<captures/regles iptables kali.png>)
 
-2. Les cinq ports de destination Tcp les plus utilisés sur les log Iptables Cloud et non présents dans le configuration Iptables sont :  443,22,80,23,445  
+1. Les cinq ports de destination Tcp les plus utilisés sur les log Iptables Cloud et non présents dans le configuration Iptables sont :  443,22,80,23,445  
 <!-- ![alt text](<captures/port utilisés.png>) -->
 
-3. Ouverture des ces 5 ports avec netcat : 
+1. Ouverture des ces 5 ports avec netcat : 
   ```bash
   sudo nc -l -p 443 &
   sudo nc -l -p 445 &
@@ -85,15 +85,10 @@ ________________________________________________________________
   sudo nc -l -p 23 &
   sudo nc -l -p 22 & 
   ```
-![alt text](<captures/nc captures.png>)
+  ![alt text](<captures/nc captures.png>)
 
 4. Configuration de Syslog-ng à l’aide des fichiers 
 [syslog-ng.conf](syslog/dck-syslog-challenge/syslog-ng.conf) et [rsyslog.xml](syslog/dck-syslog-challenge/rsyslog.xml)
-<!-- fichier 'syslog-ng.conf' -->
-<!-- ![alt text](<captures/syslog-ng conf.png>) -->
-
-<!-- fichier rsyslog.xml -->
-<!-- ![alt text](<captures/rsyslog xml.png>) -->
 
 5. Autorisation des connexions SSH venant de l'administrateur et limitation des autres SSH admin 
 ```bat
@@ -112,8 +107,8 @@ Après avoir ajouté les règles demandées, on obtient ce fichier avec toutes l
 ![alt text](<captures/regles iptables finales.png>)
 
 #### 1.2.2 Configuration Rsyslog
-On ajoute la configuration de rsyslog en spécifiant l'adresse de notre machine locale : 192.168.137.95. <br>
-La capture ci dessous montre que les logs contenant la chaine de caractères **"RULE="** sont enregistrés dans le fichier *'/var/log/sise.log'* et sont aussi envoyés via le port 514 vers la machine locale (192.168.137.95) où nos 3 conteneurs tournent.
+Ajountons la configuration de rsyslog en spécifiant l'adresse de notre **machine locale : 192.168.137.95** <br>
+La capture ci dessous montre que les logs contenant la chaine de caractères **"RULE="** sont enregistrés dans le fichier **'/var/log/sise.log'** et sont aussi envoyés via le port 514 vers la machine locale (192.168.137.95) où nos 3 conteneurs tournent.
 
 Fichier ***'/etc/rsyslog.d/challenge.conf'***
 ![alt text](<captures/conf rsyslog.png>)
@@ -123,7 +118,7 @@ Fichier ***'/etc/rsyslog.d/challenge.conf'***
   systemctl start rsyslog
   ```
 
-- On fait ensuite une capture réseau des trames 
+- On fait ensuite une capture réseau des trames passant par le port 514
   ```shell
   tcpdump -vvttttnn -XX dst port 514
   ```
@@ -135,27 +130,26 @@ Après avoir lancé le conteneur syslog avec la commande
 ```bash
 docker exec -it syslog-d-2024 bash
 ```
-on modifie le fichier de conf *'/etc/syslog-ng/syslog-ng.conf'* en ajoutant l'adresse ip du conteneur MariaDB en tant que host. Logs_fw est le nom de notre base de données.
+On modifie le fichier de conf **'/etc/syslog-ng/syslog-ng.conf'** en ajoutant l'adresse ip du conteneur MariaDB en tant que host. *Logs_fw est le nom de notre base de données.*
 ```SQL
 mysql -h 172.17.0.3 -u root -pmypass123 Logs_fw > /dev/null 
 ```
-L'adresse ip ***'172.17.0.3'*** fait référence à notre conteneur [mariaDB](#mariadb).<br>
-L'image ci-dessous montre la config syslog-ng. Les logs réceptionnés sont parsés et certaines informations **(date,ip-src, ip-dst, protocole, port de destination, policyId, action, interface)** sont enregistrés dans la base de donnés.<br>
-Les logs bruts sont sauvegardés dans le fichier *'brut.log'* et dans le fichier ***'firewall.csv'*** de manière semi-structuré. 
+  *L'adresse ip ***'172.17.0.3'*** fait référence à notre conteneur [mariaDB](#mariadb)*.<br>
+L'image ci-dessous montre la configuration syslog-ng. Les logs réceptionnés sont parsés et certaines informations **(date,ip-src, ip-dst, protocole, port de destination, policyId, action, interface)** sont enregistrés dans la base de données.<br>
+Les logs sont sauvegardés dans le fichier ***'brut.log'*** de manière brute et dans le fichier ***'firewall.csv'*** de manière semi-structurée. 
 ![alt text](<captures/syslog-ng conf.png>)
 
 On demarre ensuite le service syslog avec la commande 
 ```shell
 /etc/init.d/syslog-ng start
 ```
-Et enfin on fait une capture réseau pour voir les paquets envoyés par la machine kali.
+Et enfin on fait une capture réseau pour voir les trames qui arrivent vers notre pare feu.
 ```bash
 tcpdump -vvttttnn -XX dst port 514
 ```
-
 ![alt text](<captures/tcp dump paquets.png>)
 
-- Contenu du fichier ***'brut.log'*** :
+- Contenu du fichier ***'brut.log'*** : logs en brute
 ![alt text](<captures/brut log.png>)
 
 - Contenu du fichier ***'firewall.csv'*** : les logs sont bien parsés et enregistrés dans le fichier.
@@ -169,7 +163,7 @@ tcpdump -vvttttnn -XX dst port 514
 ### 1.4 Alimentation des données
 ________________________________________________________________
 **Consignes**
-1. Connexions licites  : pour faire des connexions licites on exécute le script ci-dessous pendant quelques minutes depuis la machine de l'administrateur (machine local) qui est autorisé à se connecter par ssh.
+1. *Connexions licites*  : pour faire des connexions licites on exécute le script ci-dessous pendant quelques minutes depuis la machine de l'administrateur (machine local) qui est autorisé à se connecter par ssh.
 ```bash
 #!/bin/bash
 
@@ -253,8 +247,9 @@ nmap -T4 --spoof-mac <adresse_mac> 192.168.137.101
 
 - 7. Attaque par brute force sur le service Ftp.
 
-Script python pour générer la wordlist import itertools
+Script python pour générer la wordlist 
 ```python
+import itertools
 characters = 'abcdefghijklmnopqrstuvwxyz'
 words = [''.join(i) for i in itertools.product(characters, repeat=4)]
 
@@ -262,7 +257,7 @@ with open('four_character_dictionary.txt', 'w') as f:
     for word in words:
         f.write(word + '\n')
 ```
-Commande pour brute force avec hydra: 
+Commande pour faire un brute force avec hydra: 
 ```bat
 hydra -l aethelwulf -P /usr/share/wordlists/four_character_dictionary.txt ftp://192.168.137.101
 ```
@@ -283,7 +278,7 @@ nikto -h 192.168.137.101:80
 
 - 10. Balayage des 100 ports les plus utilisés avec un délai d’une seconde par ports interrogés.
 ```bash
-nmap -p $(seq -s , 1 100) --max-rate=1 192.168.137.167
+nmap -p $(seq -s , 1 100) --max-rate=1 192.168.137.101
 ```
 ![alt text](<captures/100 port.png>)
 
@@ -297,6 +292,7 @@ nmap --script=ssh-brute 192.168.137.101
 ![alt text](<captures/brute force.png>)
 
 ## <a name="filebeat"></a>2. Partie Filebeat + ELK
+___
 ***Architecture***
 ![alt text](<captures/archi elk filebeat.drawio.png>)
 
